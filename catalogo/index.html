@@ -427,7 +427,7 @@
 
     <!-- FOOTER -->
     <footer class="footer">
-        Barbosa Hnos. S.R.L. &mdash; Catálogo de Productos 2025
+        Barbosa Hnos. S.R.L. &mdash; Catálogo de Productos <span id="anio"></span>
     </footer>
 
     <script>
@@ -730,6 +730,7 @@
 
     // ── INICIAR ──
     cargarDatos();
+    document.getElementById("anio").textContent = new Date().getFullYear();
     </script>
 </body>
 </html>
