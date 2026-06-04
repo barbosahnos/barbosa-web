@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="img-src * data: blob:">
+    <title>Catálogo — Barbosa Hnos. S.R.L.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --azul:       #1E3A8A;
+            --azul-medio: #2563EB;
+            --azul-claro: #EEF2FF;
+            --gris-borde: #E5E7EB;
+            --gris-texto: #6B7280;
+            --gris-marca: #9CA3AF;
+            --negro:      #111827;
+            --blanco:     #FFFFFF;
+            --fondo:      #F9FAFB;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--fondo);
+            color: var(--negro);
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background: var(--blanco);
+            border-bottom: 1px solid var(--gris-borde);
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-logo {
+            height: 48px;
+            width: auto;
+            flex-shrink: 0;
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--gris-borde);
+            flex-shrink: 0;
+        }
+
+        .header-titulo {
+            font-size: 13px;
+            color: var(--gris-texto);
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+
+        .buscador-wrap {
+            flex: 1;
+            max-width: 380px;
+            margin-left: auto;
+        }
+
+        .buscador {
+            width: 100%;
+            padding: 8px 14px 8px 36px;
+            border: 1px solid var(--gris-borde);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            outline: none;
+            background: var(--fondo) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 12px center;
+            transition: border-color 0.15s;
+        }
+
+        .buscador:focus { border-color: var(--azul-medio); }
+
+        /* ── FILTROS ── */
+        .filtros-wrap {
+            background: var(--blanco);
+            border-bottom: 1px solid var(--gris-borde);
+            padding: 0 20px;
+            position: sticky;
+            top: 60px;
+            z-index: 90;
+        }
+
+        .filtros-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .filtros-fila {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--gris-borde) transparent;
+        }
+
+        .filtros-fila::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .filtros-fila::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .filtros-fila::-webkit-scrollbar-thumb {
+            background: var(--gris-borde);
+            border-radius: 2px;
+        }
+
+        .filtros-fila + .filtros-fila {
+            border-top: 1px solid var(--gris-borde);
+        }
+
+        .filtros-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gris-marca);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 60px;
+        }
+
+        .filtro-btn {
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--gris-borde);
+            background: var(--blanco);
+            font-size: 12px;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            color: var(--gris-texto);
+            transition: all 0.1s;
+        }
+
+        .filtro-btn:hover {
+            border-color: var(--azul-medio);
+            color: var(--azul-medio);
+        }
+
+        .filtro-btn.activo {
+            background: var(--azul);
+            border-color: var(--azul);
+            color: var(--blanco);
+            font-weight: 500;
+        }
+
+        .filtro-limpiar {
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid #FCA5A5;
+            background: var(--blanco);
+            font-size: 12px;
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            color: #EF4444;
+            white-space: nowrap;
+            flex-shrink: 0;
+            display: none;
+            margin-left: 4px;
+        }
+
+        .filtro-limpiar.visible { display: block; }
+
+        /* ── CONTENIDO ── */
+        .contenido {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px 48px;
+        }
+
+        /* ── CONTADOR ── */
+        .contador {
+            font-size: 12px;
+            color: var(--gris-marca);
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        /* ── LOADING ── */
+        .loading {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--gris-texto);
+        }
+
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--gris-borde);
+            border-top-color: var(--azul-medio);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── SECCIÓN MARCA ── */
+        .seccion-marca {
+            margin-bottom: 40px;
+        }
+
+        .marca-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--azul-medio);
+        }
+
+        .marca-logo {
+            height: 28px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .marca-titulo {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--azul);
+            letter-spacing: 0.3px;
+        }
+
+        .marca-cantidad {
+            font-size: 11px;
+            color: var(--gris-marca);
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* ── GRILLA ── */
+        .grilla {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        @media (min-width: 600px) {
+            .grilla { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (min-width: 900px) {
+            .grilla { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        @media (min-width: 1200px) {
+            .grilla { grid-template-columns: repeat(5, 1fr); }
+        }
+
+        /* ── TARJETA ── */
+        .tarjeta {
+            background: var(--blanco);
+            border-radius: 10px;
+            border: 1px solid var(--gris-borde);
+            overflow: hidden;
+            transition: box-shadow 0.2s, transform 0.2s;
+            cursor: default;
+        }
+
+        .tarjeta:hover {
+            box-shadow: 0 4px 20px rgba(30,58,138,0.10);
+            transform: translateY(-2px);
+        }
+
+        .tarjeta-imagen {
+            width: 100%;
+            aspect-ratio: 1;
+            background: var(--fondo);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tarjeta-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s;
+        }
+
+        .tarjeta:hover .tarjeta-img {
+            transform: scale(1.04);
+        }
+
+        .tarjeta-img-placeholder {
+            width: 50%;
+            height: 50%;
+            background: var(--gris-borde);
+            border-radius: 8px;
+            opacity: 0.5;
+        }
+
+        .tarjeta-info {
+            padding: 8px 10px 10px;
+        }
+
+        .tarjeta-marca {
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--gris-marca);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 3px;
+        }
+
+        .tarjeta-descripcion {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--negro);
+            line-height: 1.35;
+            margin-bottom: 4px;
+        }
+
+        .tarjeta-presentacion {
+            font-size: 10px;
+            color: var(--gris-texto);
+            margin-bottom: 3px;
+        }
+
+        .tarjeta-codigo {
+            font-size: 9px;
+            color: var(--gris-borde);
+        }
+
+        /* ── SIN RESULTADOS ── */
+        .sin-resultados {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--gris-texto);
+            display: none;
+        }
+
+        .sin-resultados.visible { display: block; }
+
+        /* ── ERROR ── */
+        .error {
+            text-align: center;
+            padding: 80px 20px;
+            color: #EF4444;
+            display: none;
+        }
+
+        .error.visible { display: block; }
+
+        /* ── FOOTER ── */
+        .footer {
+            background: var(--azul);
+            color: rgba(255,255,255,0.5);
+            text-align: center;
+            padding: 20px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-inner">
+            <img src="../assets/logo_barbosa.png" alt="Barbosa" class="header-logo">
+            <div class="header-divider"></div>
+            <span class="header-titulo">Catálogo de Productos</span>
+            <div class="buscador-wrap">
+                <input type="text" class="buscador" id="buscador" placeholder="Buscar producto...">
+            </div>
+        </div>
+    </header>
+
+    <!-- FILTROS -->
+    <div class="filtros-wrap">
+        <div class="filtros-inner">
+            <div class="filtros-fila" id="filtros-marcas">
+                <span class="filtros-label">Marca</span>
+            </div>
+            <div class="filtros-fila" id="filtros-cats">
+                <span class="filtros-label">Categoría</span>
+                <button class="filtro-limpiar" id="btn-limpiar">✕ Limpiar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO -->
+    <main class="contenido">
+        <p class="contador" id="contador"></p>
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <p>Cargando catálogo...</p>
+        </div>
+        <div id="catalogo"></div>
+        <div class="sin-resultados" id="sin-resultados">
+            <p style="font-size:28px;margin-bottom:12px">🔍</p>
+            <p>No se encontraron productos</p>
+        </div>
+        <div class="error" id="error">
+            <p>No se pudo cargar el catálogo. Intentá de nuevo.</p>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        Barbosa Hnos. S.R.L. &mdash; Catálogo de Productos 2025
+    </footer>
+
+    <script>
+    // ── CONFIGURACIÓN ──
+    const SHEET_ID    = "1PgD1kpCVH0Fw0DACv1GDbB_xwRr2oh3vkxuRrrwNBHU";
+    const SHEET_NAME  = "Tabla Maestra";
+    const API_URL     = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+    const MARCAS_FILTRO = [
+        "ABEDUL","ALIMAX","ARRODUL","BOCATTI","CABAÑA","CALCHAQUI",
+        "CASAPUEBLO","CRISOL","CUMANA","DANICA","DON YEYO","DULCOR",
+        "FARGO","FRESH","GLUTAL","GRANIX","LA PAULINA","LAMB WESTON",
+        "LESAFFRE","LOS CALVOS","MONTEBERICO","PALADINI","RICH'S",
+        "RIERA","RIS","ROLIDAR","TAKIS","UNILEVER","VANOLI"
+    ];
+
+    const LOGOS_MARCAS = {
+        "ABEDUL":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424251/ABEDUL_hsyaux.png",
+        "ALIMAX":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424217/ALIMAX_epdeja.png",
+        "BOCATTI":     "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424217/BOCATTI_datoyg.png",
+        "CABAÑA":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424218/CABA%C3%91A_bwd55k.png",
+        "CALCHAQUI":   "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424220/CALCHAQUI_nq2ksl.png",
+        "CASAPUEBLO":  "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424221/CASAPUEBLO_fnelhm.png",
+        "CRISOL":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424222/CRISOL_ywr3xe.png",
+        "CUMANA":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424223/CUMANA_yxmcmt.png",
+        "DANICA":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424224/DANICA_fi146r.png",
+        "DON YEYO":    "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424226/DON_YEYO_asolju.png",
+        "DULCOR":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424227/DULCOR_miqpl7.png",
+        "FARGO":       "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424230/FARGO_v3spor.png",
+        "FRESH":       "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424232/FRESH_bxlghr.png",
+        "GLUTAL":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424233/GLUTAL_d3mmif.png",
+        "GRANIX":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424234/GRANIX_nqxygw.png",
+        "LA PAULINA":  "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424235/LA_PAULINA_guqhqj.png",
+        "LAMB WESTON": "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424236/LAMB_WESTON_vceyvm.png",
+        "LESAFFRE":    "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424238/LESAFFRE_dwtlwl.png",
+        "LOS CALVOS":  "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424240/LOS_CALVOS_mt2qf4.png",
+        "MONTEBERICO": "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424241/MONTEBERICO_pvoyem.png",
+        "PALADINI":    "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424242/PALADINI_rza7oc.png",
+        "RICH'S":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424243/RICH_S_qqatrh.png",
+        "RIERA":       "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424244/RIERA_lt8nhj.png",
+        "RIS":         "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780492817/RIS_hrzs1p.png",
+        "ROLIDAR":     "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780492799/ROLIDAR_qpsbkf.png",
+        "TAKIS":       "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424245/TAKIS_rtuzll.png",
+        "UNILEVER":    "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424247/UNILEVER_odvjyd.png",
+        "VANOLI":      "https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424249/VANOLI_fpqt9u.png",
+    };
+
+    // ── ESTADO ──
+    let filtroMarca    = null;
+    let filtroCategoria = null;
+    let textoBusqueda  = "";
+    let todosProductos = [];
+
+    // ── NORMALIZAR TILDES ──
+    function norm(s) {
+        return String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+
+    // ── PARSEAR JSON DE GOOGLE SHEETS ──
+    function parsearSheetJSON(texto) {
+        const json = JSON.parse(texto.replace(/^[^(]+\(/, "").replace(/\);?\s*$/, ""));
+        const cols = json.table.cols.map(c => c.label);
+        return json.table.rows.map(row => {
+            const obj = {};
+            row.c.forEach((cell, i) => {
+                obj[cols[i]] = cell ? (cell.v !== null ? cell.v : "") : "";
+            });
+            return obj;
+        });
+    }
+
+    // ── CARGAR DATOS ──
+    async function cargarDatos() {
+        try {
+            const res  = await fetch(API_URL);
+            const text = await res.text();
+            const rows = parsearSheetJSON(text);
+
+            // Filtrar por marcas habilitadas y descripción válida
+            todosProductos = rows.filter(p => {
+                const marca = String(p["MARCA"] || "").trim();
+                const desc  = String(p["descripcion_catalogo"] || "").trim();
+                return MARCAS_FILTRO.includes(marca) && desc && desc.toLowerCase() !== "nan";
+            });
+
+            // Ordenar por marca, subcategoría, descripción
+            todosProductos.sort((a, b) => {
+                const ma = String(a["MARCA"]||""), mb = String(b["MARCA"]||"");
+                if (ma !== mb) return ma.localeCompare(mb);
+                const sa = String(a["subcategoria_catalogo"]||""), sb = String(b["subcategoria_catalogo"]||"");
+                if (sa !== sb) return sa.localeCompare(sb);
+                return String(a["descripcion_catalogo"]||"").localeCompare(String(b["descripcion_catalogo"]||""));
+            });
+
+            construirFiltros();
+            renderizar();
+            document.getElementById("loading").style.display = "none";
+
+        } catch(e) {
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("error").classList.add("visible");
+            console.error(e);
+        }
+    }
+
+    // ── CONSTRUIR FILTROS ──
+    function construirFiltros() {
+        const marcas = [...new Set(todosProductos.map(p => String(p["MARCA"]||"").trim()))].sort();
+        const cats   = [...new Set(todosProductos.map(p => String(p["categoria_catalogo"]||"").trim()))].sort();
+
+        const contMarcas = document.getElementById("filtros-marcas");
+        marcas.forEach(m => {
+            const btn = document.createElement("button");
+            btn.className = "filtro-btn";
+            btn.dataset.tipo  = "marca";
+            btn.dataset.valor = m;
+            btn.textContent   = m;
+            btn.addEventListener("click", () => toggleFiltro("marca", m, btn));
+            contMarcas.appendChild(btn);
+        });
+
+        const contCats = document.getElementById("filtros-cats");
+        const limpiar  = document.getElementById("btn-limpiar");
+        cats.forEach(c => {
+            const btn = document.createElement("button");
+            btn.className = "filtro-btn";
+            btn.dataset.tipo  = "categoria";
+            btn.dataset.valor = c;
+            btn.textContent   = c;
+            btn.addEventListener("click", () => toggleFiltro("categoria", c, btn));
+            contCats.insertBefore(btn, limpiar);
+        });
+    }
+
+    // ── TOGGLE FILTRO ──
+    function toggleFiltro(tipo, valor, btn) {
+        if (tipo === "marca") {
+            if (filtroMarca === valor) {
+                filtroMarca = null;
+                btn.classList.remove("activo");
+            } else {
+                document.querySelectorAll(".filtro-btn[data-tipo='marca']").forEach(b => b.classList.remove("activo"));
+                filtroMarca = valor;
+                btn.classList.add("activo");
+            }
+        } else {
+            if (filtroCategoria === valor) {
+                filtroCategoria = null;
+                btn.classList.remove("activo");
+            } else {
+                document.querySelectorAll(".filtro-btn[data-tipo='categoria']").forEach(b => b.classList.remove("activo"));
+                filtroCategoria = valor;
+                btn.classList.add("activo");
+            }
+        }
+        renderizar();
+    }
+
+    // ── RENDERIZAR ──
+    function renderizar() {
+        const busq = norm(textoBusqueda);
+
+        // Filtrar productos
+        const filtrados = todosProductos.filter(p => {
+            const marca    = String(p["MARCA"]||"").trim();
+            const cat      = String(p["categoria_catalogo"]||"").trim();
+            const desc     = norm(p["descripcion_catalogo"]||"");
+            const pres     = norm(p["presentacion_catalogo"]||"");
+            const subcat   = norm(p["subcategoria_catalogo"]||"");
+            const marcaNorm = norm(marca);
+            const catNorm  = norm(cat);
+
+            const pasaMarca = !filtroMarca    || marca === filtroMarca;
+            const pasaCat   = !filtroCategoria || cat  === filtroCategoria;
+            const pasaBusq  = !busq || desc.includes(busq) || pres.includes(busq) ||
+                              marcaNorm.includes(busq) || catNorm.includes(busq) || subcat.includes(busq);
+
+            return pasaMarca && pasaCat && pasaBusq;
+        });
+
+        // Agrupar por marca
+        const porMarca = {};
+        filtrados.forEach(p => {
+            const m = String(p["MARCA"]||"").trim();
+            if (!porMarca[m]) porMarca[m] = [];
+            porMarca[m].push(p);
+        });
+
+        // Construir HTML
+        const catalogo = document.getElementById("catalogo");
+        catalogo.innerHTML = "";
+
+        Object.entries(porMarca).sort(([a],[b]) => a.localeCompare(b)).forEach(([marca, prods]) => {
+            const logoUrl = LOGOS_MARCAS[marca] || "";
+            const logoHtml = logoUrl
+                ? `<img src="${logoUrl}" alt="${marca}" class="marca-logo" loading="lazy">`
+                : "";
+
+            const tarjetas = prods.map(p => {
+                const codigo     = String(p["CODIGO"]||"").trim();
+                const desc       = String(p["descripcion_catalogo"]||"").trim();
+                const pres       = String(p["presentacion_catalogo"]||"").trim();
+                const imgUrl     = String(p["imagen"]||"").trim();
+                const cat        = String(p["categoria_catalogo"]||"").trim();
+                const subcat     = String(p["subcategoria_catalogo"]||"").trim();
+
+                const imgHtml = imgUrl && imgUrl.toLowerCase() !== "no encontrado"
+                    ? `<img src="${imgUrl}" alt="${desc}" class="tarjeta-img" loading="lazy">`
+                    : `<div class="tarjeta-img-placeholder"></div>`;
+
+                return `
+                <div class="tarjeta"
+                     data-marca="${marca}"
+                     data-categoria="${cat}"
+                     data-subcategoria="${subcat}"
+                     data-descripcion="${desc.toLowerCase()}"
+                     data-presentacion="${pres.toLowerCase()}">
+                    <div class="tarjeta-imagen">${imgHtml}</div>
+                    <div class="tarjeta-info">
+                        <p class="tarjeta-marca">${marca}</p>
+                        <p class="tarjeta-descripcion">${desc}</p>
+                        <p class="tarjeta-presentacion">${pres}</p>
+                        <p class="tarjeta-codigo">Cod. ${codigo}</p>
+                    </div>
+                </div>`;
+            }).join("");
+
+            catalogo.innerHTML += `
+            <section class="seccion-marca">
+                <div class="marca-header">
+                    ${logoHtml}
+                    <h2 class="marca-titulo">${marca}</h2>
+                    <span class="marca-cantidad">${prods.length} productos</span>
+                </div>
+                <div class="grilla">${tarjetas}</div>
+            </section>`;
+        });
+
+        // Actualizar filtros dinámicos
+        actualizarFiltrosDinamicos(filtrados);
+
+        // Contador y sin resultados
+        document.getElementById("contador").textContent =
+            `${filtrados.length} producto${filtrados.length !== 1 ? "s" : ""}`;
+        document.getElementById("sin-resultados").classList.toggle("visible", filtrados.length === 0);
+    }
+
+    // ── FILTROS DINÁMICOS ──
+    function actualizarFiltrosDinamicos(filtrados) {
+        const busq = norm(textoBusqueda);
+
+        // Marcas disponibles según categoría activa
+        const marcasDisp = new Set();
+        const catsDisp   = new Set();
+
+        todosProductos.forEach(p => {
+            const marca  = String(p["MARCA"]||"").trim();
+            const cat    = String(p["categoria_catalogo"]||"").trim();
+            const desc   = norm(p["descripcion_catalogo"]||"");
+            const pres   = norm(p["presentacion_catalogo"]||"");
+            const subcat = norm(p["subcategoria_catalogo"]||"");
+            const mNorm  = norm(marca);
+            const cNorm  = norm(cat);
+
+            const pasaBusq = !busq || desc.includes(busq) || pres.includes(busq) ||
+                             mNorm.includes(busq) || cNorm.includes(busq) || subcat.includes(busq);
+
+            if (pasaBusq) {
+                if (!filtroCategoria || cat === filtroCategoria) marcasDisp.add(marca);
+                if (!filtroMarca    || marca === filtroMarca)    catsDisp.add(cat);
+            }
+        });
+
+        document.querySelectorAll(".filtro-btn[data-tipo='marca']").forEach(btn => {
+            btn.style.display = marcasDisp.has(btn.dataset.valor) ? "" : "none";
+        });
+        document.querySelectorAll(".filtro-btn[data-tipo='categoria']").forEach(btn => {
+            btn.style.display = catsDisp.has(btn.dataset.valor) ? "" : "none";
+        });
+
+        const hayFiltros = filtroMarca || filtroCategoria || textoBusqueda;
+        document.getElementById("btn-limpiar").classList.toggle("visible", !!hayFiltros);
+    }
+
+    // ── BUSCADOR ──
+    document.getElementById("buscador").addEventListener("input", e => {
+        textoBusqueda = e.target.value.trim();
+        renderizar();
+    });
+
+    // ── LIMPIAR ──
+    document.getElementById("btn-limpiar").addEventListener("click", () => {
+        filtroMarca = null;
+        filtroCategoria = null;
+        textoBusqueda = "";
+        document.getElementById("buscador").value = "";
+        document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("activo"));
+        renderizar();
+    });
+
+    // ── INICIAR ──
+    cargarDatos();
+    </script>
+</body>
+</html>
