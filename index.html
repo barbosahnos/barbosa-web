@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbosa Hnos. S.R.L. — Distribuidora de Alimentos</title>
+    <meta name="description" content="Distribuidora de alimentos con más de 40 años abasteciendo Neuquén y Río Negro. Más de 700 productos de las mejores marcas.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        :root {
+            --azul:        #1E3A8A;
+            --azul-medio:  #2563EB;
+            --azul-claro:  #DBEAFE;
+            --azul-oscuro: #0F1F4A;
+            --dorado:      #C8A84B;
+            --gris-claro:  #F8F9FB;
+            --gris-borde:  #E5E7EB;
+            --gris-texto:  #6B7280;
+            --negro:       #0D1117;
+            --blanco:      #FFFFFF;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            color: var(--negro);
+            background: var(--blanco);
+            overflow-x: hidden;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 0;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: transparent;
+            backdrop-filter: none;
+            border-bottom: 1px solid transparent;
+            transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+
+        nav.scrolled {
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(229,231,235,0.8);
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+        }
+
+        /* Nav links blancos en hero, oscuros al scrollear */
+        .nav-links a { color: rgba(255,255,255,0.8); }
+        nav.scrolled .nav-links a { color: var(--gris-texto); }
+        .nav-links a:hover { color: var(--blanco); }
+        nav.scrolled .nav-links a:hover { color: var(--azul); }
+
+        /* Logo: blanco en hero, normal al scrollear */
+        .nav-logo-blanco { display: block; }
+        .nav-logo-color  { display: none; }
+        nav.scrolled .nav-logo-blanco { display: none; }
+        nav.scrolled .nav-logo-color  { display: block; }
+
+        /* Nombre marca */
+        .nav-marca-nombre { color: var(--blanco); }
+        .nav-marca-subtitulo { color: rgba(255,255,255,0.5); }
+        nav.scrolled .nav-marca-nombre { color: var(--azul); }
+        nav.scrolled .nav-marca-subtitulo { color: var(--gris-texto); }
+
+        /* Hamburguesa */
+        .nav-hamburger span { background: var(--blanco); }
+        nav.scrolled .nav-hamburger span { background: var(--negro); }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            height: 52px;
+            width: auto;
+        }
+
+        .nav-marca {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .nav-marca-nombre {
+            font-family: 'Playfair Display', serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--azul);
+        }
+
+        .nav-marca-subtitulo {
+            font-size: 10px;
+            color: var(--gris-texto);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gris-texto);
+            text-decoration: none;
+            letter-spacing: 0.3px;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--azul); }
+
+        .nav-cta {
+            background: var(--azul);
+            color: var(--blanco) !important;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600 !important;
+            transition: background 0.2s !important;
+        }
+
+        .nav-cta:hover { background: var(--azul-medio) !important; color: var(--blanco) !important; }
+
+        .nav-hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .nav-hamburger span {
+            width: 24px;
+            height: 2px;
+            background: var(--negro);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh;
+            background: var(--azul-oscuro);
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            padding: 100px 32px 60px;
+        }
+
+        .hero-pattern {
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 20% 50%, rgba(37,99,235,0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(30,58,138,0.4) 0%, transparent 40%),
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(255,255,255,0.015) 40px,
+                    rgba(255,255,255,0.015) 41px
+                );
+        }
+
+        .hero-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .hero-logo-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 20px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .hero-logo-img {
+            width: min(420px, 90%);
+            height: auto;
+            filter: drop-shadow(0 8px 32px rgba(0,0,0,0.3));
+        }
+
+        .hero-logo-nombre {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(28px, 3.5vw, 44px);
+            font-weight: 900;
+            color: var(--blanco);
+            line-height: 1.1;
+        }
+
+        .hero-logo-nombre span {
+            display: block;
+            font-size: 0.45em;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 400;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .hero-contenido { }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(200,168,75,0.15);
+            border: 1px solid rgba(200,168,75,0.3);
+            color: var(--dorado);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 28px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--dorado);
+            border-radius: 50%;
+        }
+
+        .hero-titulo {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(42px, 7vw, 80px);
+            font-weight: 900;
+            color: var(--blanco);
+            line-height: 1.05;
+            margin-bottom: 24px;
+            animation: fadeUp 0.6s 0.1s ease both;
+        }
+
+        .hero-titulo em {
+            font-style: normal;
+            color: var(--dorado);
+        }
+
+        .hero-subtitulo {
+            font-size: clamp(16px, 2vw, 20px);
+            color: rgba(255,255,255,0.65);
+            font-weight: 300;
+            max-width: 520px;
+            line-height: 1.7;
+            margin-bottom: 44px;
+            animation: fadeUp 0.6s 0.2s ease both;
+        }
+
+        .hero-botones {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            animation: fadeUp 0.6s 0.3s ease both;
+        }
+
+        .btn-primario {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--dorado);
+            color: var(--negro);
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-primario:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(200,168,75,0.35);
+        }
+
+        .btn-secundario {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.08);
+            color: var(--blanco);
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.15);
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .btn-secundario:hover {
+            background: rgba(255,255,255,0.14);
+            transform: translateY(-2px);
+        }
+
+        .hero-scroll {
+            position: absolute;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255,255,255,0.35);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: bounce 2s infinite;
+        }
+
+        .hero-scroll::after {
+            content: '';
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(6px); }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── NÚMEROS ── */
+        .numeros {
+            background: var(--blanco);
+            padding: 80px 32px;
+            border-bottom: 1px solid var(--gris-borde);
+        }
+
+        .numeros-inner {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+        }
+
+        .numero-item {
+            text-align: center;
+            padding: 40px 32px;
+            border-right: 1px solid var(--gris-borde);
+        }
+
+        .numero-item:last-child { border-right: none; }
+
+        .numero-valor {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(48px, 6vw, 72px);
+            font-weight: 900;
+            color: var(--azul);
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .numero-unidad {
+            color: var(--dorado);
+        }
+
+        .numero-label {
+            font-size: 13px;
+            color: var(--gris-texto);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ── NOSOTROS ── */
+        .nosotros {
+            background: var(--gris-claro);
+            padding: 100px 32px;
+        }
+
+        .seccion-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--gris-texto);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .seccion-titulo {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(32px, 4vw, 48px);
+            font-weight: 700;
+            color: var(--negro);
+            line-height: 1.15;
+            margin-bottom: 24px;
+        }
+
+        .nosotros-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .nosotros-texto p {
+            font-size: 16px;
+            color: var(--gris-texto);
+            line-height: 1.8;
+            margin-bottom: 16px;
+        }
+
+        .diferenciales {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .diferencial {
+            background: var(--blanco);
+            border: 1px solid var(--gris-borde);
+            border-radius: 10px;
+            padding: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .diferencial:hover {
+            border-color: var(--azul-medio);
+            box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+        }
+
+        .diferencial-icono {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .diferencial h4 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--negro);
+            margin-bottom: 4px;
+        }
+
+        .diferencial p {
+            font-size: 12px;
+            color: var(--gris-texto);
+            line-height: 1.5;
+            margin: 0 !important;
+        }
+
+        /* ── MARCAS ── */
+        .marcas {
+            background: var(--blanco);
+            padding: 100px 32px;
+        }
+
+        .marcas-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .marcas-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .marcas-grilla {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            background: var(--blanco);
+            border: 1px solid var(--gris-borde);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .marca-item {
+            background: var(--blanco);
+            padding: 24px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            min-height: 90px;
+            width: calc(100% / 4 - 2px);
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .marca-item { width: calc(100% / 3 - 2px); }
+        }
+
+        .marca-item:hover { background: var(--blanco); }
+
+        .marca-item .marca-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--azul);
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 0.2s, transform 0.2s;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .marca-item:hover .marca-overlay {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .marca-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 8px;
+            filter: grayscale(100%);
+            opacity: 0.6;
+            transition: filter 0.3s, opacity 0.3s;
+        }
+
+        .marca-item:hover img {
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+
+        .ver-catalogo-wrap {
+            text-align: center;
+            margin-top: 48px;
+        }
+
+        .btn-catalogo {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--azul);
+            color: var(--blanco);
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .btn-catalogo:hover {
+            background: var(--azul-medio);
+            transform: translateY(-2px);
+        }
+
+        /* ── COBERTURA ── */
+        .cobertura {
+            background: var(--gris-claro);
+            padding: 100px 32px;
+        }
+
+        .cobertura-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .cobertura-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .cobertura-contenido {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 40px;
+            align-items: start;
+        }
+
+        #mapa {
+            height: 480px;
+            border-radius: 12px;
+            border: 1px solid var(--gris-borde);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            z-index: 1;
+        }
+
+        .cobertura-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .provincia-bloque {
+            background: var(--blanco);
+            border: 1px solid var(--gris-borde);
+            border-radius: 10px;
+            padding: 20px 24px;
+        }
+
+        .provincia-nombre {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--azul-medio);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .provincia-nombre::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--gris-borde);
+        }
+
+        .ciudades-lista {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .ciudad-tag {
+            background: var(--azul-claro);
+            color: var(--azul);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* ── CONTACTO ── */
+        .contacto {
+            background: var(--azul-oscuro);
+            padding: 100px 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contacto::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 70% 50%, rgba(37,99,235,0.2) 0%, transparent 60%);
+        }
+
+        .contacto-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .contacto-texto .seccion-label { color: var(--dorado); }
+
+        .contacto-texto .seccion-titulo { color: var(--blanco); }
+
+        .contacto-texto p {
+            font-size: 16px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.8;
+            margin-bottom: 32px;
+        }
+
+        .btn-whatsapp {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: #25D366;
+            color: var(--blanco);
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-whatsapp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(37,211,102,0.35);
+        }
+
+        .btn-whatsapp svg {
+            width: 22px;
+            height: 22px;
+            fill: white;
+        }
+
+        .contacto-datos {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .dato-item {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .dato-icono {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .dato-contenido {
+            flex: 1;
+        }
+
+        .dato-contenido h4 {
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .dato-contenido p, .dato-contenido a {
+            font-size: 14px;
+            color: var(--blanco);
+            text-decoration: none;
+            line-height: 1.5;
+            display: block;
+        }
+
+        .dato-contenido a:hover { color: var(--dorado); }
+
+        .redes-sociales {
+            display: flex;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
+        .red-social {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .red-social:hover {
+            background: rgba(255,255,255,0.15);
+            color: var(--blanco);
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            background: #080E1E;
+            padding: 24px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+
+        footer img {
+            height: 32px;
+            width: auto;
+            opacity: 0.6;
+        }
+
+        footer p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        footer a {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        footer a:hover { color: var(--dorado); }
+
+        /* ── WHATSAPP FLOTANTE ── */
+        .wa-flotante {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            width: 56px;
+            height: 56px;
+            background: #25D366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+            z-index: 999;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+        }
+
+        .wa-flotante:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 28px rgba(37,211,102,0.5);
+        }
+
+        .wa-flotante svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+
+        /* ── MOBILE ── */
+        @media (max-width: 768px) {
+            nav { padding: 0 20px; }
+            .nav-links { display: none; }
+            .nav-hamburger { display: flex; }
+
+            .nav-inner { padding: 0 16px; }
+            .nav-links { display: none; }
+            .nav-hamburger { display: flex; }
+
+            .nav-links.abierto {
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+                top: 68px;
+                left: 0;
+                right: 0;
+                background: var(--blanco);
+                padding: 20px;
+                gap: 16px;
+                border-bottom: 1px solid var(--gris-borde);
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                align-items: flex-end;
+            }
+
+            .hero-inner { grid-template-columns: 1fr; gap: 32px; }
+            .hero-logo-col { align-items: center; text-align: center; }
+            .hero-logo-img { width: min(180px, 60%); }
+            .hero-logo-nombre { text-align: center; }
+            .hero-contenido { text-align: center; }
+            .hero-botones { justify-content: center; }
+            .hero-subtitulo { max-width: 100%; }
+            .hero { padding: 100px 20px 80px; }
+            .numeros-inner { grid-template-columns: 1fr; }
+            .numero-item { border-right: none; border-bottom: 1px solid var(--gris-borde); }
+            .numero-item:last-child { border-bottom: none; }
+            .nosotros-inner { grid-template-columns: 1fr; gap: 40px; }
+            .diferenciales { grid-template-columns: 1fr; }
+            .cobertura-contenido { grid-template-columns: 1fr; }
+            #mapa { height: 320px; }
+            .contacto-inner { grid-template-columns: 1fr; gap: 48px; }
+            footer { justify-content: center; text-align: center; }
+            .numeros, .nosotros, .marcas, .cobertura, .contacto { padding: 60px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav id="nav">
+        <div class="nav-inner">
+        <a href="#inicio" style="display:flex;align-items:center;gap:12px;text-decoration:none;">
+            <img src="assets/logo_barbosa_blanco.png" alt="Barbosa Hnos SRL" class="nav-logo nav-logo-blanco">
+            <img src="assets/logo_barbosa.png" alt="Barbosa Hnos SRL" class="nav-logo nav-logo-color">
+            <div class="nav-marca">
+                <span class="nav-marca-nombre">Barbosa Hnos.</span>
+                <span class="nav-marca-subtitulo">S.R.L.</span>
+            </div>
+        </a>
+        <ul class="nav-links" id="nav-links">
+            <li><a href="#nosotros">Nosotros</a></li>
+            <li><a href="#marcas">Marcas</a></li>
+            <li><a href="#cobertura">Cobertura</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+            <li><a href="catalogo/" class="nav-cta">Ver Catálogo</a></li>
+        </ul>
+        <div class="nav-hamburger" id="hamburger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" id="inicio">
+        <div class="hero-pattern"></div>
+        <div class="hero-inner">
+            <!-- COLUMNA IZQUIERDA: logo -->
+            <div class="hero-logo-col">
+                <img src="assets/logo_barbosa_blanco.png" alt="Barbosa Hnos SRL" class="hero-logo-img">
+            </div>
+            <!-- COLUMNA DERECHA: contenido -->
+            <div class="hero-contenido">
+                <div class="hero-badge">Distribuidora de Alimentos</div>
+                <h1 class="hero-titulo">
+                    Más de 40 años<br>
+                    alimentando la<br>
+                    <em>Patagonia</em>
+                </h1>
+                <p class="hero-subtitulo">
+                    Distribuimos las mejores marcas del mercado con cobertura en toda la región de Neuquén y Río Negro. Más de 800 clientes confían en nosotros.
+                </p>
+                <div class="hero-botones">
+                    <a href="catalogo/" class="btn-primario">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+                        Ver Catálogo
+                    </a>
+                    <a href="https://wa.me/5492994770958?text=Hola%21%20Los%20contacto%20desde%20el%20sitio%20web%20de%20Barbosa%20Hnos.%20Quisiera%20consultar%20sobre..." target="_blank" class="btn-secundario">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.122 1.526 5.858L.057 23.428a.5.5 0 0 0 .609.61l5.638-1.476A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.907 0-3.698-.513-5.234-1.407l-.374-.22-3.882 1.017 1.034-3.77-.242-.389A9.955 9.955 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                        Consultar por WhatsApp
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="hero-scroll">Scroll</div>
+    </section>
+
+    <!-- NÚMEROS -->
+    <section class="numeros">
+        <div class="numeros-inner">
+            <div class="numero-item">
+                <div class="numero-valor">40<span class="numero-unidad">+</span></div>
+                <div class="numero-label">Años en el mercado</div>
+            </div>
+            <div class="numero-item">
+                <div class="numero-valor">800<span class="numero-unidad">+</span></div>
+                <div class="numero-label">Clientes activos</div>
+            </div>
+            <div class="numero-item">
+                <div class="numero-valor">700<span class="numero-unidad">+</span></div>
+                <div class="numero-label">Productos disponibles</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NOSOTROS -->
+    <section class="nosotros" id="nosotros">
+        <div class="nosotros-inner">
+            <div class="nosotros-texto">
+                <p class="seccion-label">Quiénes somos</p>
+                <h2 class="seccion-titulo">Una empresa familiar con raíces patagónicas</h2>
+                <p>Somos una distribuidora de alimentos con más de 40 años de trayectoria en la región. Nacimos en Cipolletti y crecimos junto a nuestros clientes, llegando hoy a las principales ciudades de Neuquén y Río Negro.</p>
+                <p>Trabajamos con las marcas líderes del mercado y mantenemos un compromiso firme con el cumplimiento, la puntualidad y la atención personalizada en cada entrega.</p>
+            </div>
+            <div class="diferenciales">
+                <div class="diferencial">
+                    <div class="diferencial-icono">🚚</div>
+                    <h4>Entrega asegurada</h4>
+                    <p>Si lo pedís, llega. Nos comprometemos con cada entrega.</p>
+                </div>
+                <div class="diferencial">
+                    <div class="diferencial-icono">✅</div>
+                    <h4>Cumplimiento</h4>
+                    <p>40 años de entregas puntuales hablan por sí solos.</p>
+                </div>
+                <div class="diferencial">
+                    <div class="diferencial-icono">🤝</div>
+                    <h4>Atención personalizada</h4>
+                    <p>Un vendedor dedicado para cada zona.</p>
+                </div>
+                <div class="diferencial">
+                    <div class="diferencial-icono">🏆</div>
+                    <h4>Marcas de primer nivel</h4>
+                    <p>Solo distribuimos marcas líderes del mercado.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MARCAS -->
+    <section class="marcas" id="marcas">
+        <div class="marcas-inner">
+            <div class="marcas-header">
+                <p class="seccion-label">Nuestros proveedores</p>
+                <h2 class="seccion-titulo">Marcas líderes del mercado</h2>
+            </div>
+            <div class="marcas-grilla">
+                <a href="catalogo/?marca=ABEDUL" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424251/ABEDUL_hsyaux.png" alt="Abedul">
+            </a>
+                <a href="catalogo/?marca=ALIMAX" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424217/ALIMAX_epdeja.png" alt="Alimax">
+            </a>
+                <a href="catalogo/?marca=BOCATTI" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424217/BOCATTI_datoyg.png" alt="Bocatti">
+            </a>
+                <a href="catalogo/?marca=CABAÑA" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424218/CABA%C3%91A_bwd55k.png" alt="Cabaña">
+            </a>
+                <a href="catalogo/?marca=CALCHAQUI" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424220/CALCHAQUI_nq2ksl.png" alt="Calchaqui">
+            </a>
+                <a href="catalogo/?marca=CASAPUEBLO" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424221/CASAPUEBLO_fnelhm.png" alt="Casapueblo">
+            </a>
+                <a href="catalogo/?marca=CRISOL" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424222/CRISOL_ywr3xe.png" alt="Crisol">
+            </a>
+                <a href="catalogo/?marca=CUMANA" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424223/CUMANA_yxmcmt.png" alt="Cumana">
+            </a>
+                <a href="catalogo/?marca=DANICA" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424224/DANICA_fi146r.png" alt="Danica">
+            </a>
+                <a href="catalogo/?marca=DON YEYO" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424226/DON_YEYO_asolju.png" alt="Don Yeyo">
+            </a>
+                <a href="catalogo/?marca=DULCOR" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424227/DULCOR_miqpl7.png" alt="Dulcor">
+            </a>
+                <a href="catalogo/?marca=FARGO" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424230/FARGO_v3spor.png" alt="Fargo">
+            </a>
+                <a href="catalogo/?marca=FRESH" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424232/FRESH_bxlghr.png" alt="Fresh">
+            </a>
+                <a href="catalogo/?marca=GLUTAL" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424233/GLUTAL_d3mmif.png" alt="Glutal">
+            </a>
+                <a href="catalogo/?marca=GRANIX" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424234/GRANIX_nqxygw.png" alt="Granix">
+            </a>
+                <a href="catalogo/?marca=LA PAULINA" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424235/LA_PAULINA_guqhqj.png" alt="La Paulina">
+            </a>
+                <a href="catalogo/?marca=LAMB WESTON" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424236/LAMB_WESTON_vceyvm.png" alt="Lamb Weston">
+            </a>
+                <a href="catalogo/?marca=LESAFFRE" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424238/LESAFFRE_dwtlwl.png" alt="Lesaffre">
+            </a>
+                <a href="catalogo/?marca=LOS CALVOS" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424240/LOS_CALVOS_mt2qf4.png" alt="Los Calvos">
+            </a>
+                <a href="catalogo/?marca=MONTEBERICO" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424241/MONTEBERICO_pvoyem.png" alt="Monteberico">
+            </a>
+                <a href="catalogo/?marca=PALADINI" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424242/PALADINI_rza7oc.png" alt="Paladini">
+            </a>
+                <a href="catalogo/?marca=RICH%27S" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424243/RICH_S_qqatrh.png" alt="Rich's">
+            </a>
+                <a href="catalogo/?marca=RIERA" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424244/RIERA_lt8nhj.png" alt="Riera">
+            </a>
+                <a href="catalogo/?marca=TAKIS" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424245/TAKIS_rtuzll.png" alt="Takis">
+            </a>
+                <a href="catalogo/?marca=UNILEVER" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424247/UNILEVER_odvjyd.png" alt="Unilever">
+            </a>
+                <a href="catalogo/?marca=VANOLI" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780424249/VANOLI_fpqt9u.png" alt="Vanoli">
+            </a>
+                <a href="catalogo/?marca=RIS" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780492817/RIS_hrzs1p.png" alt="RIS">
+            </a>
+                <a href="catalogo/?marca=ROLIDAR" class="marca-item">
+                <div class="marca-overlay">Ver productos →</div>
+                <img src="https://res.cloudinary.com/dzurlyiwk/image/upload/v1780492799/ROLIDAR_qpsbkf.png" alt="Rolidar">
+            </a>
+            </div>
+            <div class="ver-catalogo-wrap">
+                <a href="catalogo/" class="btn-catalogo">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+                    Ver catálogo completo de productos
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- COBERTURA -->
+    <section class="cobertura" id="cobertura">
+        <div class="cobertura-inner">
+            <div class="cobertura-header">
+                <p class="seccion-label">Dónde llegamos</p>
+                <h2 class="seccion-titulo">Cobertura en toda la región</h2>
+            </div>
+            <div class="cobertura-contenido">
+                <div id="mapa"></div>
+                <div class="cobertura-lista">
+                    <div class="provincia-bloque">
+                        <div class="provincia-nombre">Neuquén</div>
+                        <div class="ciudades-lista">
+                            <span class="ciudad-tag">Neuquén</span>
+                            <span class="ciudad-tag">Centenario</span>
+                            <span class="ciudad-tag">Zapala</span>
+                            <span class="ciudad-tag">Cutral Co</span>
+                            <span class="ciudad-tag">Plaza Huincul</span>
+                            <span class="ciudad-tag">Aluminé</span>
+                            <span class="ciudad-tag">Chos Malal</span>
+                            <span class="ciudad-tag">Caviahue/Copahue</span>
+                            <span class="ciudad-tag">Añelo</span>
+                            <span class="ciudad-tag">El Chañar</span>
+                        </div>
+                    </div>
+                    <div class="provincia-bloque">
+                        <div class="provincia-nombre">Río Negro</div>
+                        <div class="ciudades-lista">
+                            <span class="ciudad-tag">Cipolletti</span>
+                            <span class="ciudad-tag">Fernández Oro</span>
+                            <span class="ciudad-tag">Allen</span>
+                            <span class="ciudad-tag">Roca</span>
+                            <span class="ciudad-tag">Regina</span>
+                            <span class="ciudad-tag">Cinco Saltos</span>
+                            <span class="ciudad-tag">Cral. Cordero</span>
+                            <span class="ciudad-tag">Barda del Medio</span>
+                            <span class="ciudad-tag">Villa Manzano</span>
+                            <span class="ciudad-tag">Catriel</span>
+                            <span class="ciudad-tag">25 de Mayo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section class="contacto" id="contacto">
+        <div class="contacto-inner">
+            <div class="contacto-texto">
+                <p class="seccion-label">Contacto</p>
+                <h2 class="seccion-titulo">¿Querés ser nuestro cliente?</h2>
+                <p>Escribinos por WhatsApp y un vendedor de tu zona se pondrá en contacto con vos a la brevedad.</p>
+                <a href="https://wa.me/5492994770958?text=Hola%21%20Los%20contacto%20desde%20el%20sitio%20web%20de%20Barbosa%20Hnos.%20Quisiera%20consultar%20sobre..." target="_blank" class="btn-whatsapp">
+                    <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.122 1.526 5.858L.057 23.428a.5.5 0 0 0 .609.61l5.638-1.476A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.907 0-3.698-.513-5.234-1.407l-.374-.22-3.882 1.017 1.034-3.77-.242-.389A9.955 9.955 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                    Escribinos por WhatsApp
+                </a>
+            </div>
+            <div class="contacto-datos">
+
+                <!-- CIPOLLETTI -->
+                <div style="margin-bottom:8px;">
+                    <p style="font-size:10px;font-weight:700;color:var(--dorado);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;">🏢 Sede Central — Cipolletti</p>
+                    <div class="dato-item" style="margin-bottom:14px;">
+                        <div class="dato-icono">📍</div>
+                        <div class="dato-contenido">
+                            <h4>Dirección</h4>
+                            <p>Estado de Israel 57, Cipolletti</p>
+                        </div>
+                    </div>
+                    <div class="dato-item" style="margin-bottom:14px;">
+                        <div class="dato-icono">🕐</div>
+                        <div class="dato-contenido">
+                            <h4>Horarios</h4>
+                            <p>Lun–Vie: 08:00 a 13:00 hs. / Sáb: 08:30 a 12:00 hs.</p>
+                        </div>
+                    </div>
+                    <div class="dato-item">
+                        <div class="dato-icono">📱</div>
+                        <div class="dato-contenido">
+                            <h4>Teléfono</h4>
+                            <a href="tel:+5492994770958">+54 299 477-0958</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height:1px;background:rgba(255,255,255,0.08);margin:20px 0;"></div>
+
+                <!-- ZAPALA -->
+                <div>
+                    <p style="font-size:10px;font-weight:700;color:var(--dorado);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;">🏢 Sucursal — Zapala</p>
+                    <div class="dato-item" style="margin-bottom:14px;">
+                        <div class="dato-icono">📍</div>
+                        <div class="dato-contenido">
+                            <h4>Dirección</h4>
+                            <p>Zeballos 950, Zapala</p>
+                        </div>
+                    </div>
+                    <div class="dato-item" style="margin-bottom:14px;">
+                        <div class="dato-icono">🕐</div>
+                        <div class="dato-contenido">
+                            <h4>Horarios</h4>
+                            <p>Lun–Vie: 07:00 a 15:00 hs.</p>
+                        </div>
+                    </div>
+                    <div class="dato-item">
+                        <div class="dato-icono">📱</div>
+                        <div class="dato-contenido">
+                            <h4>Teléfono</h4>
+                            <a href="tel:+5492942660939">+54 9 2942 660939</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height:1px;background:rgba(255,255,255,0.08);margin:20px 0;"></div>
+
+                <!-- EMAIL -->
+                <div class="dato-item">
+                    <div class="dato-icono">✉️</div>
+                    <div class="dato-contenido">
+                        <h4>Email</h4>
+                        <a href="mailto:consultasweb@barbosasrl.com.ar">consultasweb@barbosasrl.com.ar</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- REDES SOCIALES -->
+    <section style="background:var(--blanco);padding:60px 32px;text-align:center;border-top:1px solid var(--gris-borde);">
+        <p style="font-size:11px;font-weight:700;color:var(--gris-marca);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Seguinos en redes</p>
+        <h2 style="font-family:'Playfair Display',serif;font-size:28px;color:var(--azul);margin-bottom:32px;">Estamos en Instagram y Facebook</h2>
+        <div style="display:flex;gap:16px;justify-content:center;margin-bottom:20px;">
+            <a href="https://www.instagram.com/distribuidora.barbosahnos/" target="_blank"
+               style="display:flex;align-items:center;gap:10px;background:var(--azul);border:1px solid var(--azul);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;transition:background 0.2s;"
+               onmouseover="this.style.background='var(--azul-medio)'" onmouseout="this.style.background='var(--azul)'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+                Instagram
+            </a>
+            <a href="#" target="_blank"
+               style="display:flex;align-items:center;gap:10px;background:var(--azul);border:1px solid var(--azul);color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;transition:background 0.2s;"
+               onmouseover="this.style.background='var(--azul-medio)'" onmouseout="this.style.background='var(--azul)'">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                Facebook
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>© <span id="anio-footer"></span> Barbosa Hnos. S.R.L. — Todos los derechos reservados.</p>
+        <a href="catalogo/">Ver Catálogo</a>
+    </footer>
+
+    <!-- WHATSAPP FLOTANTE -->
+    <a href="https://wa.me/5492994770958?text=Hola%21%20Los%20contacto%20desde%20el%20sitio%20web%20de%20Barbosa%20Hnos.%20Quisiera%20consultar%20sobre..." target="_blank" class="wa-flotante" title="Escribinos por WhatsApp">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.124.554 4.122 1.526 5.858L.057 23.428a.5.5 0 0 0 .609.61l5.638-1.476A11.95 11.95 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.907 0-3.698-.513-5.234-1.407l-.374-.22-3.882 1.017 1.034-3.77-.242-.389A9.955 9.955 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+    </a>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+    // ── AÑO DINÁMICO ──
+    document.getElementById("anio-footer").textContent = new Date().getFullYear();
+
+    // ── NAV SCROLL ──
+    window.addEventListener("scroll", () => {
+        document.getElementById("nav").classList.toggle("scrolled", window.scrollY > 80);
+    });
+
+    // ── MENÚ MOBILE ──
+    function toggleMenu() {
+        document.getElementById("nav-links").classList.toggle("abierto");
+    }
+
+    // Cerrar menú al hacer clic en un link
+    document.querySelectorAll(".nav-links a").forEach(a => {
+        a.addEventListener("click", () => {
+            document.getElementById("nav-links").classList.remove("abierto");
+        });
+    });
+
+    // ── MAPA LEAFLET ──
+    const mapa = L.map("mapa", { zoomControl: true, scrollWheelZoom: false });
+
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: "abcd",
+        maxZoom: 13
+    }).addTo(mapa);
+
+    const iconoPersonalizado = L.divIcon({
+        className: "",
+        html: `<div style="
+            width: 12px; height: 12px;
+            background: #1E3A8A;
+            border: 2px solid #2563EB;
+            border-radius: 50%;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.2);
+        "></div>`,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+    });
+
+    const ciudades = [
+        // Neuquén
+        { nombre: "Neuquén",         lat: -38.9516,  lng: -68.0591 },
+        { nombre: "Centenario",      lat: -38.8253,  lng: -68.1286 },
+        { nombre: "Zapala",          lat: -38.8993,  lng: -70.0687 },
+        { nombre: "Cutral Co",       lat: -38.9346,  lng: -69.2325 },
+        { nombre: "Plaza Huincul",   lat: -38.9258,  lng: -69.2038 },
+        { nombre: "Aluminé",         lat: -38.9548,  lng: -70.9094 },
+        { nombre: "Chos Malal",      lat: -37.3782,  lng: -70.2705 },
+        { nombre: "Caviahue",        lat: -37.8726,  lng: -71.0093 },
+        { nombre: "Añelo",           lat: -38.3539,  lng: -68.7923 },
+        { nombre: "El Chañar",       lat: -38.3614,  lng: -68.8714 },
+        // Río Negro
+        { nombre: "Cipolletti",      lat: -38.9364,  lng: -67.9901 },
+        { nombre: "Fernández Oro",   lat: -38.9077,  lng: -67.9101 },
+        { nombre: "Allen",           lat: -38.9794,  lng: -67.8286 },
+        { nombre: "Roca",            lat: -39.0334,  lng: -67.5750 },
+        { nombre: "Regina",          lat: -39.1007,  lng: -67.0756 },
+        { nombre: "Cinco Saltos",    lat: -38.8260,  lng: -68.0611 },
+        { nombre: "Cral. Cordero",   lat: -38.7573,  lng: -68.1639 },
+        { nombre: "Barda del Medio", lat: -38.8504,  lng: -68.1901 },
+        { nombre: "Villa Manzano",   lat: -38.9560,  lng: -68.0270 },
+        { nombre: "Catriel",         lat: -37.8793,  lng: -67.7985 },
+        { nombre: "25 de Mayo",      lat: -37.7879,  lng: -67.7126 },
+    ];
+
+    ciudades.forEach(c => {
+        L.marker([c.lat, c.lng], { icon: iconoPersonalizado })
+         .addTo(mapa)
+         .bindPopup(`<strong style="font-family:DM Sans,sans-serif;font-size:13px">${c.nombre}</strong>`);
+    });
+
+    mapa.fitBounds(ciudades.map(c => [c.lat, c.lng]), { padding: [30, 30] });
+
+    // ── SCROLL REVEAL ──
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = "1";
+                entry.target.style.transform = "translateY(0)";
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll(".numero-item, .diferencial, .marca-item, .provincia-bloque").forEach(el => {
+        el.style.opacity = "0";
+        el.style.transform = "translateY(16px)";
+        el.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+        observer.observe(el);
+    });
+    </script>
+</body>
+</html>
