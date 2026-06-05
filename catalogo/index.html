@@ -753,16 +753,16 @@
     });
 
     cargarDatos().then(() => {
-        // Leer parámetro ?marca= de la URL y aplicar filtro automáticamente
         const params = new URLSearchParams(window.location.search);
         const marcaParam = params.get("marca");
         if (marcaParam) {
-            const btn = document.querySelector(`.filtro-btn[data-tipo='marca'][data-valor='${marcaParam}']`);
+            // Buscar el botón comparando el valor directamente, no con selector CSS
+            const btns = document.querySelectorAll(".filtro-btn[data-tipo='marca']");
+            const btn = Array.from(btns).find(b => b.dataset.valor === marcaParam);
             if (btn) {
                 filtroMarca = marcaParam;
                 btn.classList.add("activo");
                 renderizar();
-                // Scroll suave a los filtros
                 setTimeout(() => btn.scrollIntoView({ behavior: "smooth", block: "center" }), 300);
             }
         }
